@@ -10,13 +10,23 @@ jobs:
     steps:
       - name: Free Disk Space
         run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
           sudo apt-get clean
+          df -h
 
       - name: Install Dependencies
         run: |
           sudo apt update -y
-          sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.eu.org/init_build_environment.sh)'
+          sudo apt full-upgrade -y
+          sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison \
+            build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler ecj \
+            fastjar flex gawk gettext gcc-multilib g++-multilib git gperf haveged help2man \
+            intltool lib32gcc-s1 libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev \
+            libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libreadline-dev \
+            libssl-dev libtool lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch \
+            pkgconf python2.7 python3 python3-pip python3-ply qemu-utils re2c rsync scons \
+            squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd \
+            zlib1g-dev
 
       - name: Clone Source
         run: |
@@ -30,46 +40,31 @@ jobs:
           cd immortalwrt-mt798x
           cp -f defconfig/mt7986-ax6000.config .config
           cat >> .config << 'EOF'
-          CONFIG_TARGET_mediatek=y
-          CONFIG_TARGET_mediatek_mt7986=y
-          CONFIG_TARGET_mediatek_mt7986_DEVICE_glinet_gl-mt6000=y
-          CONFIG_PACKAGE_kmod-mt_wifi=y
-          CONFIG_PACKAGE_wifi-dats=y
-          CONFIG_PACKAGE_luci-app-mtk=y
-          CONFIG_PACKAGE_luci-i18n-mtk-zh-cn=y
-          CONFIG_PACKAGE_luci-app-turboacc-mtk=y
-          CONFIG_PACKAGE_luci-i18n-turboacc-mtk-zh-cn=y
-          CONFIG_PACKAGE_kmod-nft-offload=y
           CONFIG_PACKAGE_mwan3=y
           CONFIG_PACKAGE_luci-app-mwan3=y
           CONFIG_PACKAGE_luci-i18n-mwan3-en=y
           CONFIG_PACKAGE_kmod-macvlan=y
-          CONFIG_PACKAGE_kmod-ifb=y
-          CONFIG_PACKAGE_ppp=y
-          CONFIG_PACKAGE_ppp-mod-pppoe=y
-          CONFIG_PACKAGE_kmod-pppoe=y
-          CONFIG_PACKAGE_luci=y
-          CONFIG_PACKAGE_luci-base=y
-          CONFIG_PACKAGE_luci-mod-admin-full=y
-          CONFIG_PACKAGE_luci-app-firewall=y
-          CONFIG_PACKAGE_luci-app-opkg=y
+          CONFIG_PACKAGE_iperf3=y
+          CONFIG_PACKAGE_diffutils=y
+          CONFIG_PACKAGE_ip-full=y
           CONFIG_PACKAGE_luci-app-nlbwmon=y
           CONFIG_PACKAGE_luci-app-sqm=y
           CONFIG_PACKAGE_kmod-sched-cake=y
+          CONFIG_PACKAGE_luci-app-opkg=y
           CONFIG_PACKAGE_curl=y
           CONFIG_PACKAGE_wget=y
-          CONFIG_PACKAGE_tcpdump=y
-          CONFIG_PACKAGE_htop=y
-          CONFIG_PACKAGE_nano=y
-          CONFIG_PACKAGE_ip-full=y
-          CONFIG_PACKAGE_iperf3=y
           EOF
           make defconfig
 
       - name: Build
         run: |
           cd immortalwrt-mt798x
-          make -j$(nproc) || make -j1 V=s
+          make -j$(nproc) || make -j1 V=s 2>&1 | tail -100
+
+      - name: Show Output Files
+        if: always()
+        run: |
+          find immortalwrt-mt798x/bin/targets/mediatek/mt7986/ -name "*glinet*" 2>/dev/null || echo "No firmware files found"
 
       - name: Upload Firmware
         uses: actions/upload-artifact@v4
@@ -78,4 +73,5 @@ jobs:
           path: |
             immortalwrt-mt798x/bin/targets/mediatek/mt7986/*glinet_gl-mt6000*sysupgrade*
             immortalwrt-mt798x/bin/targets/mediatek/mt7986/*glinet_gl-mt6000*factory*
+          if-no-files-found: error
           retention-days: 7
