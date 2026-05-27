@@ -30,9 +30,39 @@ jobs:
           cd immortalwrt-mt798x
           cp -f defconfig/mt7986-ax6000.config .config
           cat >> .config << 'EOF'
-          CONFIG_PACKAGE_luci-app-mwan3=y
+          CONFIG_TARGET_mediatek=y
+          CONFIG_TARGET_mediatek_mt7986=y
+          CONFIG_TARGET_mediatek_mt7986_DEVICE_glinet_gl-mt6000=y
+          CONFIG_PACKAGE_kmod-mt_wifi=y
+          CONFIG_PACKAGE_wifi-dats=y
           CONFIG_PACKAGE_luci-app-mtk=y
+          CONFIG_PACKAGE_luci-i18n-mtk-zh-cn=y
+          CONFIG_PACKAGE_luci-app-turboacc-mtk=y
+          CONFIG_PACKAGE_luci-i18n-turboacc-mtk-zh-cn=y
+          CONFIG_PACKAGE_kmod-nft-offload=y
+          CONFIG_PACKAGE_mwan3=y
+          CONFIG_PACKAGE_luci-app-mwan3=y
+          CONFIG_PACKAGE_luci-i18n-mwan3-en=y
           CONFIG_PACKAGE_kmod-macvlan=y
+          CONFIG_PACKAGE_kmod-ifb=y
+          CONFIG_PACKAGE_ppp=y
+          CONFIG_PACKAGE_ppp-mod-pppoe=y
+          CONFIG_PACKAGE_kmod-pppoe=y
+          CONFIG_PACKAGE_luci=y
+          CONFIG_PACKAGE_luci-base=y
+          CONFIG_PACKAGE_luci-mod-admin-full=y
+          CONFIG_PACKAGE_luci-app-firewall=y
+          CONFIG_PACKAGE_luci-app-opkg=y
+          CONFIG_PACKAGE_luci-app-nlbwmon=y
+          CONFIG_PACKAGE_luci-app-sqm=y
+          CONFIG_PACKAGE_kmod-sched-cake=y
+          CONFIG_PACKAGE_curl=y
+          CONFIG_PACKAGE_wget=y
+          CONFIG_PACKAGE_tcpdump=y
+          CONFIG_PACKAGE_htop=y
+          CONFIG_PACKAGE_nano=y
+          CONFIG_PACKAGE_ip-full=y
+          CONFIG_PACKAGE_iperf3=y
           EOF
           make defconfig
 
@@ -41,9 +71,11 @@ jobs:
           cd immortalwrt-mt798x
           make -j$(nproc) || make -j1 V=s
 
-      - name: Upload
+      - name: Upload Firmware
         uses: actions/upload-artifact@v4
         with:
-          name: GL-MT6000
-          path: immortalwrt-mt798x/bin/targets/mediatek/mt7986/*sysupgrade*
+          name: GL-MT6000-ImmortalWrt
+          path: |
+            immortalwrt-mt798x/bin/targets/mediatek/mt7986/*glinet_gl-mt6000*sysupgrade*
+            immortalwrt-mt798x/bin/targets/mediatek/mt7986/*glinet_gl-mt6000*factory*
           retention-days: 7
